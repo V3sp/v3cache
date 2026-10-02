@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="v3cache-opcache-manager">
+    <description>PSR-12 coding standard for v3cache/opcache-manager.</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="parallel" value="4"/>
+    <arg name="extensions" value="php"/>
+    <arg value="p"/>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>bin</file>
+
+    <rule ref="PSR12"/>
+
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
+</ruleset>

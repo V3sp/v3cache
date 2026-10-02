@@ -1,0 +1,103 @@
+name: opcache-manager
+
+x-php-defaults: &php-defaults
+  build:
+    context: .
+  working_dir: /app
+  entrypoint: ["/app/docker/entrypoint.sh"]
+  volumes:
+    - .:/app
+  environment:
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+
+services:
+  php81:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.1"
+    volumes:
+      - .:/app
+      - vendor-php81:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  php82:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.2"
+    volumes:
+      - .:/app
+      - vendor-php82:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  php83:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.3"
+    volumes:
+      - .:/app
+      - vendor-php83:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  php84:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.4"
+    volumes:
+      - .:/app
+      - vendor-php84:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  php85:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.5"
+    volumes:
+      - .:/app
+      - vendor-php85:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+
+  ci:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_VERSION: "8.5"
+    volumes:
+      - .:/app
+      - vendor-php85:/app/vendor
+      - .phpunit.cache:/app/.phpunit.cache
+    depends_on:
+      - redis
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        vendor/bin/phpstan analyse
+        vendor/bin/phpcs
+        vendor/bin/phpunit
+
+volumes:
+  vendor-php81:
+  vendor-php82:
+  vendor-php83:
+  vendor-php84:
+  vendor-php85:
+  .phpunit.cache:

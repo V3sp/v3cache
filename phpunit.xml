@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         colors="true"
+         executionOrder="depends,defects"
+         failOnRisky="true"
+         failOnWarning="true"
+         beStrictAboutOutputDuringTests="true"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnPhpunitDeprecations="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+
+    <groups>
+        <exclude>
+            <group>integration</group>
+        </exclude>
+    </groups>
+
+    <!--
+        Uwaga: opcache.enable i opcache.enable_cli to dyrektywy PHP_INI_SYSTEM —
+        nie da się ich ustawić runtime przez ini_set(), więc <ini> tutaj nic
+        nie robi (celowo ich nie ma, bo byłyby mylące).
+
+        Opcache musi być włączone na poziomie kontenera / php.ini:
+        Dockerfile zapisuje opcache.enable=1 i opcache.enable_cli=1
+        do /usr/local/etc/php/conf.d/zz-opcache-manager.ini
+
+        Testy integracyjne sprawdzające opcache_get_status() muszą być
+        pomijane (markTestSkipped), gdy opcache nie jest dostępne.
+    -->
+</phpunit>

@@ -1,0 +1,14 @@
+/vendor/
+/composer.lock
+
+/.phpunit.cache/
+/.phpstan.cache/
+/.phpunit.result.cache
+
+# Local agent tooling and 10x workflow docs — not part of the library
+/.opencode/
+/context/
+
+.DS_Store
+.idea/
+.vscode/

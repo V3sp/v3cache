@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use V3Cache\OpcacheManager\Cli\ApplicationFactory;
+
+if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg') {
+    fwrite(STDERR, 'opcache-manager musi być uruchamiany z CLI.' . PHP_EOL);
+    exit(1);
+}
+
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$loaded = false;
+foreach ($autoloaders as $autoloader) {
+    if (file_exists($autoloader)) {
+        require $autoloader;
+        $loaded = true;
+        break;
+    }
+}
+
+if ($loaded === false) {
+    fwrite(STDERR, 'Nie znaleziono autoloadera. Uruchom `composer install`.' . PHP_EOL);
+    exit(1);
+}
+
+exit(ApplicationFactory::create()->run());

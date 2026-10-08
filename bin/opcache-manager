@@ -29,4 +29,8 @@ if ($loaded === false) {
     exit(1);
 }
 
-exit(ApplicationFactory::create()->run());
+$argv = array_slice($_SERVER['argv'], 1);
+
+$application = ApplicationFactory::create();
+
+exit($application->run(array_values($argv)));

@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [php81, php82, php83, php84, php85]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker compose build ${{ matrix.php }}
+      - name: Run tests
+        run: docker compose run ${{ matrix.php }} vendor/bin/phpunit
+
+  quality:
+    name: phpstan + phpcs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker compose build ci
+      - name: Run static analysis
+        run: docker compose run ci vendor/bin/phpstan analyse
+      - name: Run coding standard check
+        run: docker compose run ci vendor/bin/phpcs

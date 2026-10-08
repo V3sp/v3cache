@@ -1,6 +1,6 @@
 {
-    "name": "v3cache/opcache-manager",
-    "description": "Monitoring, health checking, warmup and multi-server aggregation for PHP OPcache",
+    "name": "v3sp/v3cache",
+    "description": "Monitoring, health checking, warmup and optimization for PHP OPcache",
     "type": "library",
     "license": "MIT",
     "keywords": ["opcache", "monitoring", "health-check", "cache", "performance"],
@@ -8,17 +8,12 @@
         "php": "^8.1",
         "ext-json": "*",
         "ext-zend-opcache": "*",
-        "predis/predis": "^2.0",
-        "symfony/console": "^6.0|^7.0|^8.0",
-        "symfony/yaml": "^6.0|^7.0|^8.0"
+        "predis/predis": "^2.0"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^10.0",
         "squizlabs/php_codesniffer": "^3.0"
-    },
-    "suggest": {
-        "ext-curl": "Wymagane przez CurlHttpClient do agregacji multi-server"
     },
     "autoload": {
         "psr-4": {

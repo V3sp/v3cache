@@ -7,7 +7,9 @@
 
 # Local agent tooling and 10x workflow docs — not part of the library
 /.opencode/
+/.agents/
 /context/
+/skills-lock.json
 
 .DS_Store
 .idea/

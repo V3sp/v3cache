@@ -1,0 +1,13 @@
+# Exclude development files from Composer dist archives.
+/.github export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore
+/AGENTS.md export-ignore
+/context export-ignore
+/.opencode export-ignore
+/docker export-ignore
+/docker-compose.yml export-ignore
+/phpunit.xml export-ignore
+/phpstan.neon export-ignore
+/phpcs.xml export-ignore
+/tests export-ignore

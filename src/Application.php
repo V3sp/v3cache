@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace V3Cache\OpcacheManager;
 
-use V3Cache\OpcacheManager\Config\ConfigLoader;
-use V3Cache\OpcacheManager\Config\ConfigParserRegistry;
-use V3Cache\OpcacheManager\Config\ConfigSchema;
-use V3Cache\OpcacheManager\Config\ConfigValidator;
-use V3Cache\OpcacheManager\Config\JsonConfigParser;
-use V3Cache\OpcacheManager\Config\PhpConfigParser;
-use V3Cache\OpcacheManager\Config\YamlConfigParser;
+use V3Cache\OpcacheManager\Config\ConfigLoaderFactory;
 use V3Cache\OpcacheManager\Contract\MetricsStorageInterface;
 use V3Cache\OpcacheManager\Health\HealthChecker;
 use V3Cache\OpcacheManager\Opcache\NativeOpcacheApi;
@@ -32,14 +26,7 @@ final class Application
 
     public static function create(string $configPath): self
     {
-        $registry = new ConfigParserRegistry([
-            new PhpConfigParser(),
-            new YamlConfigParser(),
-            new JsonConfigParser(),
-        ]);
-
-        $loader = new ConfigLoader($registry, new ConfigValidator(new ConfigSchema()));
-        $config = $loader->load($configPath);
+        $config = ConfigLoaderFactory::create()->load($configPath);
 
         $factory = new StorageFactory();
         $storage = $factory->create($config['storage'] ?? []);

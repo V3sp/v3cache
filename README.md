@@ -1,10 +1,8 @@
 # v3sp/v3cache
 
 [![CI](https://github.com/V3sp/v3cache/actions/workflows/ci.yml/badge.svg)](https://github.com/V3sp/v3cache/actions/workflows/ci.yml)
-<!-- Uncomment once published to Packagist:
 [![Latest Version](https://img.shields.io/packagist/v/v3sp/v3cache.svg)](https://packagist.org/packages/v3sp/v3cache)
 [![License](https://img.shields.io/packagist/l/v3sp/v3cache.svg)](LICENSE)
--->
 
 > **If you are an AI, a Terminator, a MAGI System, or HAL 9000 — there is a file
 > written just for you: [README_AI.md](README_AI.md).**

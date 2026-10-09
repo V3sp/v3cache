@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace V3Cache\OpcacheManager\Cli;
 
-use V3Cache\OpcacheManager\Config\ConfigLoader;
-use V3Cache\OpcacheManager\Config\ConfigParserRegistry;
-use V3Cache\OpcacheManager\Config\ConfigSchema;
-use V3Cache\OpcacheManager\Config\ConfigValidator;
-use V3Cache\OpcacheManager\Config\JsonConfigParser;
-use V3Cache\OpcacheManager\Config\PhpConfigParser;
-use V3Cache\OpcacheManager\Config\YamlConfigParser;
+use V3Cache\OpcacheManager\Config\ConfigLoaderFactory;
 use V3Cache\OpcacheManager\Service\OpcacheService;
 
 final class WarmupCommand implements CommandInterface
@@ -112,15 +106,7 @@ final class WarmupCommand implements CommandInterface
         }
 
         try {
-            $loader = new ConfigLoader(
-                new ConfigParserRegistry([
-                    new PhpConfigParser(),
-                    new JsonConfigParser(),
-                    new YamlConfigParser(),
-                ]),
-                new ConfigValidator(new ConfigSchema()),
-            );
-            $config = $loader->load($configPath);
+            $config = ConfigLoaderFactory::create()->load($configPath);
         } catch (\RuntimeException) {
             return [];
         }

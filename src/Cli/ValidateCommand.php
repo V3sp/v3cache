@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace V3Cache\OpcacheManager\Cli;
 
-use V3Cache\OpcacheManager\Config\ConfigLoader;
-use V3Cache\OpcacheManager\Config\ConfigParserRegistry;
-use V3Cache\OpcacheManager\Config\ConfigValidator;
-use V3Cache\OpcacheManager\Config\ConfigSchema;
-use V3Cache\OpcacheManager\Config\PhpConfigParser;
-use V3Cache\OpcacheManager\Config\JsonConfigParser;
-use V3Cache\OpcacheManager\Config\YamlConfigParser;
+use V3Cache\OpcacheManager\Config\ConfigLoaderFactory;
 use V3Cache\OpcacheManager\Exception\ValidationException;
 use V3Cache\OpcacheManager\Opcache\OpcacheApiInterface;
 use V3Cache\OpcacheManager\Storage\StorageFactory;
@@ -46,17 +40,8 @@ final class ValidateCommand implements CommandInterface
 
         echo OutputFormatter::info('Configuration Validation') . "\n\n";
 
-        $loader = new ConfigLoader(
-            new ConfigParserRegistry([
-                new PhpConfigParser(),
-                new JsonConfigParser(),
-                new YamlConfigParser(),
-            ]),
-            new ConfigValidator(new ConfigSchema()),
-        );
-
         try {
-            $config = $loader->load($configPath);
+            $config = ConfigLoaderFactory::create()->load($configPath);
             $this->check('Config parsing', 'valid', true);
         } catch (ValidationException $e) {
             $this->check('Config parsing', $e->getMessage(), false);

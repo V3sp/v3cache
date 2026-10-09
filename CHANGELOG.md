@@ -5,6 +5,13 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-09
+
+### Changed
+
+- Excluded the root `Dockerfile` from Composer distribution archives; it remains in the Git repository for development and CI.
+- Centralized default configuration loader setup for the application and CLI commands.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added

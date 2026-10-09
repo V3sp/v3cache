@@ -6,11 +6,7 @@ namespace V3Cache\OpcacheManager\Tests\Unit\Config;
 
 use PHPUnit\Framework\TestCase;
 use V3Cache\OpcacheManager\Config\ConfigLoader;
-use V3Cache\OpcacheManager\Config\ConfigParserRegistry;
-use V3Cache\OpcacheManager\Config\ConfigValidator;
-use V3Cache\OpcacheManager\Config\JsonConfigParser;
-use V3Cache\OpcacheManager\Config\PhpConfigParser;
-use V3Cache\OpcacheManager\Config\YamlConfigParser;
+use V3Cache\OpcacheManager\Config\ConfigLoaderFactory;
 use V3Cache\OpcacheManager\Exception\ValidationException;
 
 final class ConfigLoaderTest extends TestCase
@@ -19,13 +15,7 @@ final class ConfigLoaderTest extends TestCase
 
     protected function setUp(): void
     {
-        $registry = new ConfigParserRegistry([
-            new PhpConfigParser(),
-            new YamlConfigParser(),
-            new JsonConfigParser(),
-        ]);
-        $validator = new ConfigValidator(new \V3Cache\OpcacheManager\Config\ConfigSchema());
-        $this->loader = new ConfigLoader($registry, $validator);
+        $this->loader = ConfigLoaderFactory::create();
     }
 
     public function testLoadReturnsParsedConfig(): void
@@ -39,6 +29,23 @@ final class ConfigLoaderTest extends TestCase
         $this->assertSame(['storage' => ['type' => 'memory']], $result);
 
         unlink($path);
+    }
+
+    public function testLoadParsesYamlUsingDefaultParserRegistry(): void
+    {
+        $temporaryPath = tempnam(sys_get_temp_dir(), 'cfg_');
+        self::assertNotFalse($temporaryPath);
+        $path = $temporaryPath . '.yaml';
+        rename($temporaryPath, $path);
+        file_put_contents($path, "storage:\n  type: memory\n");
+
+        try {
+            $config = $this->loader->load($path);
+
+            $this->assertSame('memory', $config['storage']['type']);
+        } finally {
+            unlink($path);
+        }
     }
 
     public function testLoadThrowsOnMissingFile(): void

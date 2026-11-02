@@ -5,6 +5,8 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-02
+
 ### Fixed
 
 - `ScriptInfo::$lastUsed` now reads `last_used_timestamp` from

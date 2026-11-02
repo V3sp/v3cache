@@ -36,13 +36,13 @@ final class OptimizeCommand implements CommandInterface
         echo OutputFormatter::info('Optimization Recommendations:') . "\n\n";
 
         foreach ($recommendations as $recommendation) {
-            echo \sprintf(
+            echo OutputFormatter::sanitize(\sprintf(
                 "%s: %s (current: %s, recommended: %s)\n",
                 $recommendation->directive,
                 $recommendation->description,
                 $recommendation->currentValue,
                 $recommendation->recommendedValue,
-            );
+            ));
         }
 
         return 0;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace V3Cache\OpcacheManager\Tests\Unit\Health;
 
 use PHPUnit\Framework\TestCase;
+use V3Cache\OpcacheManager\Exception\ValidationException;
 use V3Cache\OpcacheManager\Health\HealthThresholds;
 
 final class HealthThresholdsTest extends TestCase
@@ -63,5 +64,33 @@ final class HealthThresholdsTest extends TestCase
         $this->assertSame(20.0, $thresholds->maxWastedPercent);
         $this->assertSame(0, $thresholds->maxRestarts);
         $this->assertSame(90.0, $thresholds->maxMemoryUsagePercent);
+    }
+
+    public function testFromConfigRejectsNegativeHitRate(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        HealthThresholds::fromConfig(['min_hit_rate' => -1]);
+    }
+
+    public function testFromConfigRejectsHitRateAboveHundred(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        HealthThresholds::fromConfig(['max_wasted_percent' => 101]);
+    }
+
+    public function testFromConfigRejectsNegativeRestarts(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        HealthThresholds::fromConfig(['max_restarts' => -1]);
+    }
+
+    public function testFromConfigRejectsNonNumericValue(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        HealthThresholds::fromConfig(['min_hit_rate' => 'not-a-number']);
     }
 }

@@ -20,16 +20,24 @@ final class ScriptInfo
      */
     public static function fromArray(array $data): self
     {
-        if (!isset($data['path'], $data['memory_usage'], $data['hits'], $data['last_used'], $data['timestamp'])) {
-            throw new \InvalidArgumentException('Missing required keys for ScriptInfo');
+        foreach (['path', 'memory_usage', 'hits', 'last_used', 'timestamp'] as $key) {
+            if (!array_key_exists($key, $data)) {
+                throw new \InvalidArgumentException(\sprintf('Missing required key "%s" for ScriptInfo', $key));
+            }
+        }
+
+        $path = $data['path'];
+
+        if (!is_string($path) || $path === '' || strlen($path) > 4096 || str_contains($path, "\0")) {
+            throw new \InvalidArgumentException('Invalid ScriptInfo path');
         }
 
         return new self(
-            path: (string) $data['path'],
-            memoryUsage: (float) $data['memory_usage'],
-            hits: (int) $data['hits'],
-            lastUsed: (int) $data['last_used'],
-            timestamp: (int) $data['timestamp'],
+            path: $path,
+            memoryUsage: self::float($data, 'memory_usage'),
+            hits: self::int($data, 'hits'),
+            lastUsed: self::int($data, 'last_used'),
+            timestamp: self::int($data, 'timestamp'),
         );
     }
 
@@ -45,5 +53,47 @@ final class ScriptInfo
             'last_used' => $this->lastUsed,
             'timestamp' => $this->timestamp,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function float(array $data, string $key): float
+    {
+        $value = $data[$key];
+
+        if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+            throw new \InvalidArgumentException(\sprintf('Invalid ScriptInfo value for "%s"', $key));
+        }
+
+        $number = (float) $value;
+
+        if (!is_finite($number) || $number < 0.0) {
+            throw new \InvalidArgumentException(\sprintf('Invalid ScriptInfo value for "%s"', $key));
+        }
+
+        return $number;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function int(array $data, string $key): int
+    {
+        $value = $data[$key];
+
+        if (is_int($value)) {
+            $number = $value;
+        } elseif (is_string($value) && preg_match('/^\d+$/', $value) === 1) {
+            $number = (int) $value;
+        } else {
+            throw new \InvalidArgumentException(\sprintf('Invalid ScriptInfo value for "%s"', $key));
+        }
+
+        if ($number < 0) {
+            throw new \InvalidArgumentException(\sprintf('Invalid ScriptInfo value for "%s"', $key));
+        }
+
+        return $number;
     }
 }

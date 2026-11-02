@@ -6,11 +6,17 @@ namespace V3Cache\OpcacheManager\Config;
 
 final class SimpleYamlParser
 {
+    private const MAX_BYTES = 1048576;
+
     /**
      * @return array<string, mixed>
      */
     public function parse(string $content): array
     {
+        if (strlen($content) > self::MAX_BYTES) {
+            throw new \RuntimeException('YAML config is too large');
+        }
+
         $lines = explode("\n", $content);
         $result = [];
         $currentSection = null;
@@ -59,7 +65,7 @@ final class SimpleYamlParser
         return $result;
     }
 
-    private function parseValue(string $value): string|int|bool
+    private function parseValue(string $value): string|int|float|bool
     {
         if ($value === 'true') {
             return true;
@@ -69,8 +75,21 @@ final class SimpleYamlParser
             return false;
         }
 
-        if (is_numeric($value)) {
+        if (strlen($value) >= 2) {
+            $first = $value[0];
+            $last = $value[strlen($value) - 1];
+
+            if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+                return substr($value, 1, -1);
+            }
+        }
+
+        if (preg_match('/^-?\d+$/', $value) === 1) {
             return (int) $value;
+        }
+
+        if (is_numeric($value)) {
+            return (float) $value;
         }
 
         return $value;

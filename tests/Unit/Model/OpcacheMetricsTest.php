@@ -90,6 +90,27 @@ final class OpcacheMetricsTest extends TestCase
         OpcacheMetrics::fromArray(['memory_usage' => 64.5]);
     }
 
+    public function testFromArrayThrowsOnInvalidHitRate(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        OpcacheMetrics::fromArray($this->createData(['hit_rate' => 101.0]));
+    }
+
+    public function testFromArrayThrowsOnNegativeMemory(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        OpcacheMetrics::fromArray($this->createData(['memory_usage' => -1.0]));
+    }
+
+    public function testFromArrayThrowsOnNonArrayScripts(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        OpcacheMetrics::fromArray($this->createData(['scripts' => 'not-an-array']));
+    }
+
     public function testToArrayRoundTripsThroughFromArray(): void
     {
         $metrics = new OpcacheMetrics(
@@ -120,5 +141,26 @@ final class OpcacheMetricsTest extends TestCase
         $this->assertSame($metrics->lastRestartTime, $roundTripped->lastRestartTime);
         $this->assertCount(1, $roundTripped->scripts);
         $this->assertSame('/var/www/a.php', $roundTripped->scripts[0]->path);
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private function createData(array $overrides = []): array
+    {
+        return array_merge([
+            'memory_usage' => 64.5,
+            'memory_free' => 35.5,
+            'memory_wasted' => 0.0,
+            'hit_rate' => 95.5,
+            'cached_scripts' => 10,
+            'cached_keys' => 15,
+            'max_cached_keys' => 10000,
+            'restarts' => 0,
+            'start_time' => 1234567890,
+            'last_restart_time' => null,
+            'scripts' => [],
+        ], $overrides);
     }
 }

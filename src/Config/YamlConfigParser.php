@@ -13,13 +13,11 @@ final class YamlConfigParser implements ConfigParserInterface
 
     public function parse(string $path): array
     {
-        if (!file_exists($path)) {
-            throw new \RuntimeException(\sprintf('Config file not found: %s', $path));
-        }
+        $resolvedPath = ConfigPathGuard::resolve($path);
 
-        $content = file_get_contents($path);
+        $content = file_get_contents($resolvedPath);
         if ($content === false) {
-            throw new \RuntimeException(\sprintf('Failed to read config file: %s', $path));
+            throw new \RuntimeException(\sprintf('Failed to read config file: %s', $resolvedPath));
         }
 
         $result = $this->parser->parse($content);

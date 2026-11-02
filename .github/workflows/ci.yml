@@ -8,28 +8,49 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        php: [php81, php82, php83, php84, php85]
+        php: [php83, php84, php85]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - name: Build image
         run: docker compose build ${{ matrix.php }}
+      - name: Verify PHP version
+        run: >-
+          docker compose run --rm ${{ matrix.php }} php -r 'exit(PHP_VERSION_ID >= 80336 ? 0 : 1);'
+      - name: Check platform requirements
+        run: docker compose run --rm ${{ matrix.php }} composer check-platform-reqs
       - name: Run tests
         run: docker compose run ${{ matrix.php }} vendor/bin/phpunit
 
   quality:
     name: phpstan + phpcs
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - name: Build image
         run: docker compose build ci
+      - name: Validate Composer metadata
+        run: docker compose run --rm ci composer validate --strict
+      - name: Audit dependencies
+        run: docker compose run --rm ci composer audit --abandoned=fail
       - name: Run static analysis
         run: docker compose run ci vendor/bin/phpstan analyse
       - name: Run coding standard check

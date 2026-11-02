@@ -5,14 +5,16 @@
     "license": "MIT",
     "keywords": ["opcache", "monitoring", "health-check", "cache", "performance"],
     "require": {
-        "php": "^8.1",
+        "php": "^8.3.36",
         "ext-json": "*",
         "ext-zend-opcache": "*",
-        "predis/predis": "^2.0"
+        "predis/predis": "^3.7"
     },
     "require-dev": {
+        "cyclonedx/cyclonedx-php-composer": "^6.2",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^10.0",
+        "roave/security-advisories": "dev-latest",
         "squizlabs/php_codesniffer": "^3.0"
     },
     "autoload": {
@@ -29,6 +31,12 @@
         "bin/opcache-manager"
     ],
     "config": {
+        "allow-plugins": {
+            "cyclonedx/cyclonedx-php-composer": true
+        },
+        "audit": {
+            "abandoned": "fail"
+        },
         "sort-packages": true
     },
     "minimum-stability": "stable",

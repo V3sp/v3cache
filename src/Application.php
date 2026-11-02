@@ -26,8 +26,22 @@ final class Application
 
     public static function create(string $configPath): self
     {
-        $config = ConfigLoaderFactory::create()->load($configPath);
+        return self::fromConfig(ConfigLoaderFactory::create()->load($configPath));
+    }
 
+    /**
+     * Safe bootstrap for untrusted config paths: JSON/YAML only.
+     */
+    public static function createSafe(string $configPath): self
+    {
+        return self::fromConfig(ConfigLoaderFactory::createSafe()->load($configPath));
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function fromConfig(array $config): self
+    {
         $factory = new StorageFactory();
         $storage = $factory->create($config['storage'] ?? []);
 
@@ -43,6 +57,26 @@ final class Application
     public function getConfig(): array
     {
         return $this->config;
+    }
+
+    /**
+     * Returns the config with credentials replaced by a placeholder.
+     *
+     * @return array<string, mixed>
+     */
+    public function getConfigRedacted(): array
+    {
+        $config = $this->config;
+
+        if (isset($config['storage']['redis']['password'])) {
+            $config['storage']['redis']['password'] = '***';
+        }
+
+        if (isset($config['storage']['redis']['password_env'])) {
+            $config['storage']['redis']['password_env'] = '***';
+        }
+
+        return $config;
     }
 
     public function getMetricsStorage(): MetricsStorageInterface

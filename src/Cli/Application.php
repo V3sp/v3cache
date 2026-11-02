@@ -41,11 +41,13 @@ final class Application
 
         $parsed = ArgumentParser::parse($argv);
         $command = $this->commands[$commandName];
+        $verbose = isset($parsed['options']['verbose']) || isset($parsed['options']['v']);
 
         try {
             return $command->execute($parsed['args'], $parsed['options']);
         } catch (\Throwable $e) {
-            fwrite(STDERR, OutputFormatter::error($e->getMessage()) . "\n");
+            $message = $verbose ? $e->getMessage() : 'Command failed. Run with --verbose for details.';
+            fwrite(STDERR, OutputFormatter::error($message) . "\n");
 
             return 1;
         }

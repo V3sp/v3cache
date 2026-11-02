@@ -100,6 +100,56 @@ final class ApplicationTest extends TestCase
         }
     }
 
+    public function testCreateSafeLoadsJsonConfig(): void
+    {
+        $path = $this->createTempConfig(['storage' => ['type' => 'memory']]);
+
+        try {
+            $app = Application::createSafe($path);
+
+            $this->assertInstanceOf(Application::class, $app);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testCreateSafeRejectsPhpConfig(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'cfg') . '.php';
+        file_put_contents($path, '<?php return [];');
+
+        try {
+            $this->expectException(ValidationException::class);
+            Application::createSafe($path);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function testGetConfigRedactedHidesRedisPassword(): void
+    {
+        $path = $this->createTempConfig([
+            'storage' => [
+                'type' => 'redis',
+                'redis' => [
+                    'host' => '127.0.0.1',
+                    'port' => 6379,
+                    'password' => 'secret',
+                    'db' => 0,
+                ],
+            ],
+        ]);
+
+        try {
+            $app = Application::createSafe($path);
+
+            $this->assertSame('secret', $app->getConfig()['storage']['redis']['password']);
+            $this->assertSame('***', $app->getConfigRedacted()['storage']['redis']['password']);
+        } finally {
+            unlink($path);
+        }
+    }
+
     /**
      * @param array<string, mixed> $config
      */

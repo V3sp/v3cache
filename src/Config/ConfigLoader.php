@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace V3Cache\OpcacheManager\Config;
 
-use V3Cache\OpcacheManager\Exception\ValidationException;
-
 final class ConfigLoader
 {
     public function __construct(
@@ -19,12 +17,10 @@ final class ConfigLoader
      */
     public function load(string $path): array
     {
-        if (!file_exists($path)) {
-            throw new ValidationException(\sprintf('Config file not found: %s', $path));
-        }
+        $resolvedPath = ConfigPathGuard::resolve($path);
 
-        $parser = $this->registry->for($path);
-        $config = $parser->parse($path);
+        $parser = $this->registry->for($resolvedPath);
+        $config = $parser->parse($resolvedPath);
 
         $this->validator->validate($config);
 

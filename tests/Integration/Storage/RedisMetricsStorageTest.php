@@ -6,6 +6,7 @@ namespace V3Cache\OpcacheManager\Tests\Integration\Storage;
 
 use PHPUnit\Framework\TestCase;
 use V3Cache\OpcacheManager\Contract\MetricsStorageInterface;
+use V3Cache\OpcacheManager\Exception\StorageException;
 use V3Cache\OpcacheManager\Model\OpcacheMetrics;
 use V3Cache\OpcacheManager\Storage\RedisMetricsStorage;
 
@@ -98,6 +99,56 @@ final class RedisMetricsStorageTest extends TestCase
 
         $this->assertGreaterThan(0, $ttl);
         $this->assertLessThanOrEqual(3600, $ttl);
+    }
+
+    public function testLoadRejectsMalformedJson(): void
+    {
+        $client = $this->createClient();
+        $client->set('opcache:metrics:bad', '{invalid');
+
+        try {
+            $this->expectException(StorageException::class);
+            $this->storage->load('bad');
+        } finally {
+            $client->del(['opcache:metrics:bad']);
+        }
+    }
+
+    public function testLoadAllSkipsMalformedEntries(): void
+    {
+        $client = $this->createClient();
+        $client->set('opcache:metrics:bad', '{invalid');
+        $this->storage->save('server-1', $this->createMetrics());
+
+        try {
+            $all = $this->storage->loadAll();
+
+            $this->assertArrayHasKey('server-1', $all);
+            $this->assertArrayNotHasKey('bad', $all);
+        } finally {
+            $client->del(['opcache:metrics:bad']);
+        }
+    }
+
+    public function testLoadRejectsOversizedPayload(): void
+    {
+        $client = $this->createClient();
+        $client->set('opcache:metrics:big', str_repeat('a', 1048577));
+
+        try {
+            $this->expectException(StorageException::class);
+            $this->storage->load('big');
+        } finally {
+            $client->del(['opcache:metrics:big']);
+        }
+    }
+
+    private function createClient(): \Predis\Client
+    {
+        $host = getenv('REDIS_HOST') ?: '127.0.0.1';
+        $port = (int) (getenv('REDIS_PORT') ?: 6379);
+
+        return new \Predis\Client(['scheme' => 'tcp', 'host' => $host, 'port' => $port]);
     }
 
     private function createMetrics(): OpcacheMetrics

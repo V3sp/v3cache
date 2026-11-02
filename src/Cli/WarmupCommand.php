@@ -9,8 +9,14 @@ use V3Cache\OpcacheManager\Service\OpcacheService;
 
 final class WarmupCommand implements CommandInterface
 {
+    private const MAX_FILES = 10000;
+
+    /**
+     * @param array<int, string> $allowedRoots
+     */
     public function __construct(
         private readonly OpcacheService $service,
+        private readonly array $allowedRoots = [],
     ) {
     }
 
@@ -26,20 +32,21 @@ final class WarmupCommand implements CommandInterface
 
     public function execute(array $args, array $options): int
     {
+        $roots = $this->resolveRoots($options);
         $files = [];
 
         $fileList = $options['file'] ?? $options['f'] ?? null;
         if ($fileList !== null) {
-            $files = $this->readFileList($fileList);
+            $files = $this->readFileList((string) $fileList, $roots);
         }
 
         $dir = $options['dir'] ?? $options['d'] ?? null;
         if ($dir !== null) {
-            $files = array_merge($files, $this->scanDirectory($dir));
+            $files = array_merge($files, $this->scanDirectory((string) $dir, $roots));
         }
 
         if ($files === []) {
-            $files = $this->loadWarmupPathsFromConfig($options['config'] ?? 'config.php');
+            $files = $this->loadWarmupPathsFromConfig((string) ($options['config'] ?? 'config.php'), $roots);
         }
 
         if ($files === []) {
@@ -70,36 +77,69 @@ final class WarmupCommand implements CommandInterface
     }
 
     /**
+     * @param array<string, string> $options
      * @return array<int, string>
      */
-    private function readFileList(string $path): array
+    private function resolveRoots(array $options): array
     {
-        if (!file_exists($path)) {
+        $root = $options['root'] ?? $options['r'] ?? null;
+        $roots = $root !== null ? [(string) $root] : $this->allowedRoots;
+
+        if ($roots === []) {
+            $cwd = getcwd();
+            $roots = $cwd !== false ? [$cwd] : [];
+        }
+
+        return PathGuard::normalizeRoots($roots);
+    }
+
+    /**
+     * @param array<int, string> $roots
+     * @return array<int, string>
+     */
+    private function readFileList(string $path, array $roots): array
+    {
+        $resolvedPath = PathGuard::resolveListFile($path);
+
+        if ($resolvedPath === null) {
             return [];
         }
 
-        $content = file_get_contents($path);
+        $content = file_get_contents($resolvedPath);
         if ($content === false) {
             return [];
         }
 
-        $lines = explode("\n", $content);
         $files = [];
 
-        foreach ($lines as $line) {
+        foreach (explode("\n", $content) as $line) {
             $line = trim($line);
-            if ($line !== '' && file_exists($line)) {
-                $files[] = $line;
+
+            if ($line === '') {
+                continue;
+            }
+
+            $file = PathGuard::resolveFile($line, $roots);
+
+            if ($file === null || strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'php') {
+                continue;
+            }
+
+            $files[$file] = true;
+
+            if (count($files) >= self::MAX_FILES) {
+                break;
             }
         }
 
-        return $files;
+        return array_keys($files);
     }
 
     /**
+     * @param array<int, string> $roots
      * @return array<int, string>
      */
-    private function loadWarmupPathsFromConfig(string $configPath): array
+    private function loadWarmupPathsFromConfig(string $configPath, array $roots): array
     {
         if (!file_exists($configPath)) {
             return [];
@@ -116,29 +156,78 @@ final class WarmupCommand implements CommandInterface
             return [];
         }
 
-        return array_values(array_filter($paths, 'is_string'));
+        $files = [];
+
+        foreach ($paths as $path) {
+            if (!is_string($path)) {
+                continue;
+            }
+
+            $dir = PathGuard::resolveDirectory($path, $roots);
+
+            if ($dir !== null) {
+                foreach ($this->scanDirectory($dir, $roots) as $file) {
+                    $files[$file] = true;
+                }
+
+                continue;
+            }
+
+            $file = PathGuard::resolveFile($path, $roots);
+
+            if ($file === null || strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'php') {
+                continue;
+            }
+
+            $files[$file] = true;
+
+            if (count($files) >= self::MAX_FILES) {
+                break;
+            }
+        }
+
+        return array_slice(array_keys($files), 0, self::MAX_FILES);
     }
 
     /**
+     * @param array<int, string> $roots
      * @return array<int, string>
      */
-    private function scanDirectory(string $dir): array
+    private function scanDirectory(string $dir, array $roots): array
     {
-        if (!is_dir($dir)) {
+        $resolvedDir = PathGuard::resolveDirectory($dir, $roots);
+
+        if ($resolvedDir === null) {
             return [];
         }
 
         $files = [];
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator($resolvedDir, \RecursiveDirectoryIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
-            if ($file instanceof \SplFileInfo && $file->isFile() && $file->getExtension() === 'php') {
-                $files[] = $file->getPathname();
+            if (!($file instanceof \SplFileInfo) || !$file->isFile() || $file->isLink()) {
+                continue;
+            }
+
+            if (strtolower($file->getExtension()) !== 'php') {
+                continue;
+            }
+
+            $real = PathGuard::resolveFile($file->getPathname(), $roots);
+
+            if ($real === null) {
+                continue;
+            }
+
+            $files[$real] = true;
+
+            if (count($files) >= self::MAX_FILES) {
+                break;
             }
         }
 
-        return $files;
+        return array_keys($files);
     }
 }

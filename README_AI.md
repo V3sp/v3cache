@@ -4,7 +4,7 @@ For AI agents consuming this package. Humans: README.md. Working on this repo: A
 
 ## Meta
 ns = V3Cache\OpcacheManager (-> src/). Every type below is ns-relative. !X = throws X.
-pkg v3sp/v3cache (composer library); php ^8.1; ext-json, ext-zend-opcache; predis/predis (auto, redis storage only)
+pkg v3sp/v3cache (composer library); php ^8.3.36; ext-json, ext-zend-opcache; predis/predis (auto, redis storage only)
 bin vendor/bin/opcache-manager; scope single-server, headless
 test double Opcache\MockOpcacheApi
 
@@ -54,11 +54,11 @@ Config\ConfigLoader: new(Config\ConfigParserRegistry,Config\ConfigValidator); lo
 
 Contract\MetricsStorageInterface: save(string $serverId,Model\OpcacheMetrics): void; load(string): ?Model\OpcacheMetrics; loadAll(): array<string,Model\OpcacheMetrics>; delete(string): void
 Storage\StorageFactory::create(array $config): Contract\MetricsStorageInterface // type memory(default)|redis; unknown -> !Exception\ValidationException
-Storage\InMemoryMetricsStorage (per-process); Storage\RedisMetricsStorage(array $config) // key opcache:metrics:{id}, ttl 3600, json; cfg host 127.0.0.1, port 6379, password null, db 0
+Storage\InMemoryMetricsStorage (per-process); Storage\RedisMetricsStorage(array $config) // key opcache:metrics:{id}, ttl 3600, json; cfg host 127.0.0.1, port 6379, password null, password_env null, db 0, tls false, ssl [], timeout 5.0, read_write_timeout null, persistent false
 
 ## Config file (all sections optional; storage default memory)
 ext .php(returns array) | .json | .yaml/.yml (one nesting level only)
-storage.type 'memory'|'redis'; storage.redis{host,port,password,db}
+storage.type 'memory'|'redis'; storage.redis{host,port,password,password_env,db,tls,ssl,timeout,read_write_timeout,persistent}
 health{min_hit_rate 80.0, max_wasted_percent 20.0, max_restarts 0, max_memory_usage_percent 90.0}
 optimization.warmup_paths string[] (warmup fallback)
 reserved, validated but unused: servers (open map id=>endpoint, key timeout); panel.poll_interval int 5
@@ -67,8 +67,8 @@ bad config -> !Exception\ValidationException; getErrors(): array<string,string>
 ## CLI (vendor/bin/opcache-manager <cmd> [opts])
 status [--format=table|json] -> 1 if disabled
 reload | clear | optimize -> 0
-invalidate <path> -> 1 if missing
-warmup [--file=<list>|--dir=<dir>|--config=<path>] -> uses optimization.warmup_paths fallback; 0
+invalidate <path> [--root=<dir>] -> 1 if missing/outside root
+warmup [--file=<list>|--dir=<dir>|--config=<path>|--root=<dir>] -> uses optimization.warmup_paths fallback; 0
 health-check [--format=table|json|nagios] -> 0/1/2 = ok/warn/crit
 doctor -> 1 if disabled
 validate [--config=<path>] -> 1 on fail

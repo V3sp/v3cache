@@ -112,8 +112,9 @@ final class OpcacheService
                 directive: 'opcache.validate_timestamps',
                 currentValue: $validateTimestamps,
                 recommendedValue: '0',
-                severity: HealthStatus::OK,
-                description: 'Consider disabling opcache.validate_timestamps in production',
+                severity: HealthStatus::WARN,
+                description: 'Only disable after ensuring every deploy restarts PHP workers; '
+                    . 'security patches are not applied until restart',
             );
         }
 
@@ -123,8 +124,9 @@ final class OpcacheService
                 directive: 'opcache.revalidate_freq',
                 currentValue: $revalidateFreq,
                 recommendedValue: '0',
-                severity: HealthStatus::OK,
-                description: 'Consider setting opcache.revalidate_freq to 0 in production',
+                severity: HealthStatus::WARN,
+                description: 'Only set to 0 after ensuring every deploy restarts PHP workers; '
+                    . 'security patches are not applied until restart',
             );
         }
 

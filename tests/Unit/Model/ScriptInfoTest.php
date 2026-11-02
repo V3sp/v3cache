@@ -52,6 +52,32 @@ final class ScriptInfoTest extends TestCase
         ScriptInfo::fromArray(['path' => '/var/www/test.php']);
     }
 
+    public function testFromArrayThrowsOnInvalidPath(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        ScriptInfo::fromArray([
+            'path' => '',
+            'memory_usage' => 1.0,
+            'hits' => 1,
+            'last_used' => 1,
+            'timestamp' => 1,
+        ]);
+    }
+
+    public function testFromArrayThrowsOnNegativeHits(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        ScriptInfo::fromArray([
+            'path' => '/var/www/test.php',
+            'memory_usage' => 1.0,
+            'hits' => -1,
+            'last_used' => 1,
+            'timestamp' => 1,
+        ]);
+    }
+
     public function testToArrayReturnsSnakeCase(): void
     {
         $script = new ScriptInfo(

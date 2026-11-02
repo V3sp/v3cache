@@ -8,7 +8,7 @@
 > written just for you: [README_AI.md](README_AI.md).**
 
 **Monitoring, health checking, warmup and optimization for PHP OPcache.** A headless
-Composer library for PHP 8.1+ — no GUI and no server orchestration.
+Composer library for PHP 8.3.36+ — no GUI and no server orchestration.
 
 ## Why this library exists
 
@@ -33,16 +33,40 @@ OPcache makes a PHP application noticeably faster.
 
 ## Requirements
 
-- PHP `^8.1`
+- PHP `^8.3.36` (8.3, 8.4 and 8.5 are tested)
 - `ext-json`
 - `ext-zend-opcache`
 - `predis/predis` (installed automatically; only used by the Redis storage backend)
+
+### Supported PHP versions
+
+| PHP | Status | Security support until |
+|---|---|---|
+| 8.3 | supported (minimum `8.3.36`) | 2027-12-31 |
+| 8.4 | supported (minimum `8.4.27`) | 2028-12-31 |
+| 8.5 | supported (minimum `8.5.12`) | 2029-12-31 |
+
+PHP 8.1 and 8.2 are **not supported**. PHP 8.1 is end-of-life and did not
+receive upstream fixes for `CVE-2026-109618` / `CVE-2026-109619`; PHP 8.2
+reaches end of security support on 2026-12-31.
 
 ## Installation
 
 ```bash
 composer require v3sp/v3cache
 ```
+
+## Upgrading from 0.1.x
+
+`0.1.x` supported PHP 8.1+ and is now **end-of-life** — it does not receive
+security backports. To move to `0.2.x`:
+
+1. Upgrade PHP to **8.3.36 or newer** (8.4.27+ / 8.5.12+ recommended).
+2. Run `composer require v3sp/v3cache:^0.2`.
+
+If you must stay on PHP 8.1/8.2 for a short transition, pin
+`v3sp/v3cache:0.1.*`, but treat the runtime as unsupported and upgrade PHP as
+soon as possible.
 
 ## Quick start
 
@@ -178,7 +202,16 @@ return [
 | Section | Keys | Type / default | Used by |
 | --- | --- | --- | --- |
 | `storage` | `type` | string, `memory` | `StorageFactory` |
-| | `redis.{host,port,password,db}` | string/int/null, `127.0.0.1`/`6379`/`null`/`0` | `RedisMetricsStorage` |
+| | `redis.host` | string, `127.0.0.1` | `RedisMetricsStorage` |
+| | `redis.port` | int, `6379` | |
+| | `redis.password` | string/null, `null` | |
+| | `redis.password_env` | string, `null` | environment variable fallback |
+| | `redis.db` | int, `0` | |
+| | `redis.tls` | bool, `false` | use TLS for the Redis connection |
+| | `redis.ssl` | array, `[]` | SSL context options |
+| | `redis.timeout` | float, `5.0` | connection timeout |
+| | `redis.read_write_timeout` | float, `null` | read/write timeout |
+| | `redis.persistent` | bool, `false` | persistent connection |
 | `health` | `min_hit_rate` | float, `80.0` | `HealthChecker` |
 | | `max_wasted_percent` | float, `20.0` | |
 | | `max_restarts` | int, `0` | |
@@ -218,8 +251,8 @@ vendor/bin/opcache-manager <command> [options]
 | `reload` | — | Reload OPcache. |
 | `clear` | — | Clear OPcache. |
 | `optimize` | — | Show optimization recommendations. |
-| `invalidate` | `<path>` | Invalidate a single script. |
-| `warmup` | `--file=<list>`, `--dir=<dir>`, `--config=<path>` | Compile files into OPcache. |
+| `invalidate` | `<path>`, `--root=<dir>` | Invalidate a single script. |
+| `warmup` | `--file=<list>`, `--dir=<dir>`, `--config=<path>`, `--root=<dir>` | Compile files into OPcache. |
 | `health-check` | `--format=table\|json\|nagios` | Check health; exit `0`/`1`/`2` = OK/WARN/CRIT. |
 | `doctor` | — | Diagnose the OPcache environment. |
 | `validate` | `--config=<path>` | Validate configuration. |
@@ -229,6 +262,9 @@ vendor/bin/opcache-manager status --format=json
 vendor/bin/opcache-manager warmup --dir=src/
 vendor/bin/opcache-manager health-check --format=nagios
 ```
+
+`invalidate` and `warmup` only accept files under the current working directory
+by default; use `--root=<dir>` to allow another root. Symlinks are rejected.
 
 ## Recipes
 
@@ -256,6 +292,14 @@ $app->getMetricsStorage()->save('web-1', $app->getOpcacheService()->getMetrics()
 
 Multi-server aggregation and a web dashboard are handled by a **separate project**
 (*to be announced*). This package intentionally stays headless and dependency-light.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for supported versions, private vulnerability
+reporting and security-related configuration notes. Incident playbooks are in
+[docs/security/incident-response.md](docs/security/incident-response.md), and the
+release/signing checklist is in
+[docs/security/release-checklist.md](docs/security/release-checklist.md).
 
 ## Development
 

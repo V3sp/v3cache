@@ -16,22 +16,32 @@ final class OutputFormatter
 
     public static function success(string $message): string
     {
-        return self::COLORS['green'] . $message . self::COLORS['reset'];
+        return self::COLORS['green'] . self::sanitize($message) . self::COLORS['reset'];
     }
 
     public static function error(string $message): string
     {
-        return self::COLORS['red'] . $message . self::COLORS['reset'];
+        return self::COLORS['red'] . self::sanitize($message) . self::COLORS['reset'];
     }
 
     public static function warning(string $message): string
     {
-        return self::COLORS['yellow'] . $message . self::COLORS['reset'];
+        return self::COLORS['yellow'] . self::sanitize($message) . self::COLORS['reset'];
     }
 
     public static function info(string $message): string
     {
-        return self::COLORS['blue'] . $message . self::COLORS['reset'];
+        return self::COLORS['blue'] . self::sanitize($message) . self::COLORS['reset'];
+    }
+
+    /**
+     * Remove terminal control characters while preserving newlines and tabs.
+     */
+    public static function sanitize(string $value): string
+    {
+        $clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $value);
+
+        return $clean ?? '';
     }
 
     /**
@@ -66,7 +76,7 @@ final class OutputFormatter
     {
         $parts = [];
         foreach ($cells as $i => $cell) {
-            $parts[] = str_pad($cell, $widths[$i]);
+            $parts[] = str_pad(self::sanitize($cell), $widths[$i]);
         }
 
         return implode('  ', $parts);

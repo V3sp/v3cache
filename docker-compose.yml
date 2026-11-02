@@ -12,34 +12,12 @@ x-php-defaults: &php-defaults
     REDIS_PORT: "6379"
 
 services:
-  php81:
-    <<: *php-defaults
-    build:
-      context: .
-      args:
-        PHP_VERSION: "8.1"
-    volumes:
-      - .:/app
-      - vendor-php81:/app/vendor
-    command: ["vendor/bin/phpunit"]
-
-  php82:
-    <<: *php-defaults
-    build:
-      context: .
-      args:
-        PHP_VERSION: "8.2"
-    volumes:
-      - .:/app
-      - vendor-php82:/app/vendor
-    command: ["vendor/bin/phpunit"]
-
   php83:
     <<: *php-defaults
     build:
       context: .
       args:
-        PHP_VERSION: "8.3"
+        PHP_IMAGE: "php:8.3.36-cli@sha256:600bce7c7acf524756e5aac989f4a763aed709960d7326970bb670f46efee53a"
     volumes:
       - .:/app
       - vendor-php83:/app/vendor
@@ -50,7 +28,7 @@ services:
     build:
       context: .
       args:
-        PHP_VERSION: "8.4"
+        PHP_IMAGE: "php:8.4.27-cli@sha256:7e7413ed31b8c42b31c939cc83b3758b1cd618f7bf3803f5a0c39f98d4adcbee"
     volumes:
       - .:/app
       - vendor-php84:/app/vendor
@@ -61,24 +39,22 @@ services:
     build:
       context: .
       args:
-        PHP_VERSION: "8.5"
+        PHP_IMAGE: "php:8.5.12-cli@sha256:9236fd373d3bcda0659cf94838a744bd79791419292958963f8c6b34a0071554"
     volumes:
       - .:/app
       - vendor-php85:/app/vendor
     command: ["vendor/bin/phpunit"]
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
     command: ["redis-server", "--save", "", "--appendonly", "no"]
-    ports:
-      - "6379:6379"
 
   ci:
     <<: *php-defaults
     build:
       context: .
       args:
-        PHP_VERSION: "8.5"
+        PHP_IMAGE: "php:8.5.12-cli@sha256:9236fd373d3bcda0659cf94838a744bd79791419292958963f8c6b34a0071554"
     volumes:
       - .:/app
       - vendor-php85:/app/vendor
@@ -90,13 +66,12 @@ services:
       - -c
       - |
         set -e
+        composer audit --abandoned=fail
         vendor/bin/phpstan analyse
         vendor/bin/phpcs
         vendor/bin/phpunit
 
 volumes:
-  vendor-php81:
-  vendor-php82:
   vendor-php83:
   vendor-php84:
   vendor-php85:

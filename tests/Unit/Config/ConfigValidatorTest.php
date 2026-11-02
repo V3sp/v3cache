@@ -145,4 +145,117 @@ final class ConfigValidatorTest extends TestCase
 
         $this->assertNotEmpty($this->validator->getErrors());
     }
+
+    public function testValidateAcceptsNestedRedisConfig(): void
+    {
+        $config = [
+            'storage' => [
+                'type' => 'redis',
+                'redis' => [
+                    'host' => '127.0.0.1',
+                    'port' => 6379,
+                    'password' => null,
+                    'db' => 0,
+                    'tls' => false,
+                    'timeout' => 1.5,
+                ],
+            ],
+        ];
+
+        $this->validator->validate($config);
+
+        $this->assertSame([], $this->validator->getErrors());
+    }
+
+    public function testValidateAcceptsRedisTlsConfig(): void
+    {
+        $config = [
+            'storage' => [
+                'type' => 'redis',
+                'redis' => [
+                    'host' => 'redis.internal',
+                    'port' => 6380,
+                    'password_env' => 'REDIS_PASSWORD',
+                    'db' => 1,
+                    'tls' => true,
+                    'ssl' => ['verify_peer' => true],
+                    'read_write_timeout' => 2.0,
+                    'persistent' => false,
+                ],
+            ],
+        ];
+
+        $this->validator->validate($config);
+
+        $this->assertSame([], $this->validator->getErrors());
+    }
+
+    public function testValidateRejectsInvalidRedisPort(): void
+    {
+        $this->assertInvalidConfig([
+            'storage' => ['type' => 'redis', 'redis' => ['port' => 70000]],
+        ]);
+    }
+
+    public function testValidateRejectsInvalidRedisDb(): void
+    {
+        $this->assertInvalidConfig([
+            'storage' => ['type' => 'redis', 'redis' => ['db' => 99]],
+        ]);
+    }
+
+    public function testValidateRejectsRedisHostWithScheme(): void
+    {
+        $this->assertInvalidConfig([
+            'storage' => ['type' => 'redis', 'redis' => ['host' => 'http://127.0.0.1']],
+        ]);
+    }
+
+    public function testValidateRejectsNonStringWarmupPath(): void
+    {
+        $this->assertInvalidConfig([
+            'optimization' => ['warmup_paths' => [123]],
+        ]);
+    }
+
+    public function testValidateRejectsNegativeHealthThreshold(): void
+    {
+        $this->assertInvalidConfig([
+            'health' => ['min_hit_rate' => -1],
+        ]);
+    }
+
+    public function testValidateRejectsInvalidStorageType(): void
+    {
+        $this->assertInvalidConfig([
+            'storage' => ['type' => 'sqlite'],
+        ]);
+    }
+
+    public function testValidateRejectsInvalidServerKey(): void
+    {
+        $this->assertInvalidConfig([
+            'servers' => ['bad/key' => 'http://10.0.0.1'],
+        ]);
+    }
+
+    public function testValidateRejectsInvalidPollInterval(): void
+    {
+        $this->assertInvalidConfig([
+            'panel' => ['poll_interval' => 0],
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function assertInvalidConfig(array $config): void
+    {
+        try {
+            $this->validator->validate($config);
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $e) {
+            $this->assertNotEmpty($e->getErrors());
+        }
+    }
 }

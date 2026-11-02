@@ -69,6 +69,36 @@ final class WarmupCommandTest extends TestCase
         $this->assertSame(0, $exitCode);
     }
 
+    public function testExecuteRejectsFileOutsideAllowedRoot(): void
+    {
+        $command = $this->createCommand();
+        $file = tempnam(sys_get_temp_dir(), 'warmup_target_') . '.php';
+        file_put_contents($file, '<?php');
+        $list = tempnam(sys_get_temp_dir(), 'warmup_list_');
+        self::assertNotFalse($list);
+        file_put_contents($list, $file . "\n");
+
+        try {
+            $this->expectOutputRegex('/No files to warm up/');
+            $exitCode = $command->execute([], ['file' => $list, 'root' => __DIR__]);
+
+            $this->assertSame(0, $exitCode);
+        } finally {
+            unlink($file);
+            unlink($list);
+        }
+    }
+
+    public function testExecuteRejectsDirectoryOutsideAllowedRoot(): void
+    {
+        $command = $this->createCommand();
+
+        $this->expectOutputRegex('/No files to warm up/');
+        $exitCode = $command->execute([], ['dir' => sys_get_temp_dir(), 'root' => __DIR__]);
+
+        $this->assertSame(0, $exitCode);
+    }
+
     private function createCommand(): WarmupCommand
     {
         $api = new MockOpcacheApi();

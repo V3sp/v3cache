@@ -6,6 +6,8 @@ namespace V3Cache\OpcacheManager\Model;
 
 final class OpcacheMetrics
 {
+    private const MAX_SCRIPTS = 100000;
+
     /**
      * @param array<int, ScriptInfo> $scripts
      */
@@ -49,22 +51,37 @@ final class OpcacheMetrics
             }
         }
 
+        if (!is_array($data['scripts'])) {
+            throw new \InvalidArgumentException('OpcacheMetrics scripts must be an array');
+        }
+
+        if (count($data['scripts']) > self::MAX_SCRIPTS) {
+            throw new \InvalidArgumentException('OpcacheMetrics contains too many scripts');
+        }
+
         $scripts = [];
+
         foreach ($data['scripts'] as $scriptData) {
+            if (!is_array($scriptData)) {
+                throw new \InvalidArgumentException('OpcacheMetrics script entries must be arrays');
+            }
+
             $scripts[] = ScriptInfo::fromArray($scriptData);
         }
 
         return new self(
-            memoryUsage: (float) $data['memory_usage'],
-            memoryFree: (float) $data['memory_free'],
-            memoryWasted: (float) $data['memory_wasted'],
-            hitRate: (float) $data['hit_rate'],
-            cachedScripts: (int) $data['cached_scripts'],
-            cachedKeys: (int) $data['cached_keys'],
-            maxCachedKeys: (int) $data['max_cached_keys'],
-            restarts: (int) $data['restarts'],
-            startTime: (int) $data['start_time'],
-            lastRestartTime: $data['last_restart_time'] !== null ? (int) $data['last_restart_time'] : null,
+            memoryUsage: self::float($data, 'memory_usage'),
+            memoryFree: self::float($data, 'memory_free'),
+            memoryWasted: self::float($data, 'memory_wasted'),
+            hitRate: self::float($data, 'hit_rate', 0.0, 100.0),
+            cachedScripts: self::int($data, 'cached_scripts'),
+            cachedKeys: self::int($data, 'cached_keys'),
+            maxCachedKeys: self::int($data, 'max_cached_keys'),
+            restarts: self::int($data, 'restarts'),
+            startTime: self::int($data, 'start_time'),
+            lastRestartTime: $data['last_restart_time'] === null
+                ? null
+                : self::int($data, 'last_restart_time'),
             scripts: $scripts,
         );
     }
@@ -87,5 +104,47 @@ final class OpcacheMetrics
             'last_restart_time' => $this->lastRestartTime,
             'scripts' => array_map(static fn (ScriptInfo $script): array => $script->toArray(), $this->scripts),
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function float(array $data, string $key, float $min = 0.0, ?float $max = null): float
+    {
+        $value = $data[$key];
+
+        if (!is_int($value) && !is_float($value) && !(is_string($value) && is_numeric($value))) {
+            throw new \InvalidArgumentException(\sprintf('Invalid OpcacheMetrics value for "%s"', $key));
+        }
+
+        $number = (float) $value;
+
+        if (!is_finite($number) || $number < $min || ($max !== null && $number > $max)) {
+            throw new \InvalidArgumentException(\sprintf('Invalid OpcacheMetrics value for "%s"', $key));
+        }
+
+        return $number;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function int(array $data, string $key): int
+    {
+        $value = $data[$key];
+
+        if (is_int($value)) {
+            $number = $value;
+        } elseif (is_string($value) && preg_match('/^\d+$/', $value) === 1) {
+            $number = (int) $value;
+        } else {
+            throw new \InvalidArgumentException(\sprintf('Invalid OpcacheMetrics value for "%s"', $key));
+        }
+
+        if ($number < 0) {
+            throw new \InvalidArgumentException(\sprintf('Invalid OpcacheMetrics value for "%s"', $key));
+        }
+
+        return $number;
     }
 }

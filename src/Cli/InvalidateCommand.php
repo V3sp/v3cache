@@ -8,8 +8,12 @@ use V3Cache\OpcacheManager\Service\OpcacheService;
 
 final class InvalidateCommand implements CommandInterface
 {
+    /**
+     * @param array<int, string> $allowedRoots
+     */
     public function __construct(
         private readonly OpcacheService $service,
+        private readonly array $allowedRoots = [],
     ) {
     }
 
@@ -33,10 +37,36 @@ final class InvalidateCommand implements CommandInterface
             return 1;
         }
 
-        $this->service->invalidate($path);
+        $roots = $this->resolveRoots($options);
+        $file = PathGuard::resolveFile($path, $roots);
 
-        echo OutputFormatter::success(\sprintf('Script "%s" invalidated successfully', $path)) . "\n";
+        if ($file === null) {
+            fwrite(STDERR, OutputFormatter::error(\sprintf('Script not found or not allowed: %s', $path)) . "\n");
+
+            return 1;
+        }
+
+        $this->service->invalidate($file);
+
+        echo OutputFormatter::success(\sprintf('Script "%s" invalidated successfully', $file)) . "\n";
 
         return 0;
+    }
+
+    /**
+     * @param array<string, string> $options
+     * @return array<int, string>
+     */
+    private function resolveRoots(array $options): array
+    {
+        $root = $options['root'] ?? $options['r'] ?? null;
+        $roots = $root !== null ? [(string) $root] : $this->allowedRoots;
+
+        if ($roots === []) {
+            $cwd = getcwd();
+            $roots = $cwd !== false ? [$cwd] : [];
+        }
+
+        return PathGuard::normalizeRoots($roots);
     }
 }

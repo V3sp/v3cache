@@ -1,0 +1,18 @@
+# Keep the Docker build context small and free of local/agent state.
+.git
+.gitignore
+.github
+vendor
+context
+.opencode
+.agents
+.phpunit.cache
+.phpstan.cache
+.phpunit.result.cache
+node_modules
+.DS_Store
+.idea
+.vscode
+*.log
+.env
+.env.*

@@ -85,6 +85,6 @@ final class ValidateCommand implements CommandInterface
     private function check(string $name, string $value, bool $ok): void
     {
         $status = $ok ? OutputFormatter::success('OK') : OutputFormatter::error('FAIL');
-        echo \sprintf("  %-30s %s (%s)\n", $name, $status, $value);
+        echo \sprintf("  %-30s %s (%s)\n", $name, $status, OutputFormatter::sanitize($value));
     }
 }

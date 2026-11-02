@@ -5,6 +5,12 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- `ScriptInfo::$lastUsed` now reads `last_used_timestamp` from
+  `opcache_get_status()` and falls back to a numeric `last_used` value. Previously
+  the human-readable `last_used` string was cast to `0`, producing epoch dates.
+
 ## [0.2.0] - 2026-11-02
 
 ### Changed

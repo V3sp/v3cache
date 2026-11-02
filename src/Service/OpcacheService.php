@@ -151,13 +151,11 @@ final class OpcacheService
 
         $scripts = [];
         foreach ($status['scripts'] ?? [] as $scriptData) {
-            $scripts[] = new ScriptInfo(
-                path: (string) ($scriptData['full_path'] ?? ''),
-                memoryUsage: (int) ($scriptData['memory_consumption'] ?? 0) / 1048576,
-                hits: (int) ($scriptData['hits'] ?? 0),
-                lastUsed: (int) ($scriptData['last_used'] ?? 0),
-                timestamp: (int) ($scriptData['timestamp'] ?? 0),
-            );
+            if (!is_array($scriptData)) {
+                continue;
+            }
+
+            $scripts[] = $this->mapScript($scriptData);
         }
 
         return new OpcacheMetrics(
@@ -183,15 +181,40 @@ final class OpcacheService
     {
         $scripts = [];
         foreach ($status['scripts'] ?? [] as $scriptData) {
-            $scripts[] = new ScriptInfo(
-                path: (string) ($scriptData['full_path'] ?? ''),
-                memoryUsage: (int) ($scriptData['memory_consumption'] ?? 0) / 1048576,
-                hits: (int) ($scriptData['hits'] ?? 0),
-                lastUsed: (int) ($scriptData['last_used'] ?? 0),
-                timestamp: (int) ($scriptData['timestamp'] ?? 0),
-            );
+            if (!is_array($scriptData)) {
+                continue;
+            }
+
+            $scripts[] = $this->mapScript($scriptData);
         }
 
         return $scripts;
+    }
+
+    /**
+     * @param array<string, mixed> $scriptData
+     */
+    private function mapScript(array $scriptData): ScriptInfo
+    {
+        $lastUsed = $scriptData['last_used_timestamp'] ?? null;
+        if (!$this->isNumericTimestamp($lastUsed)) {
+            $lastUsed = $scriptData['last_used'] ?? null;
+        }
+        if (!$this->isNumericTimestamp($lastUsed)) {
+            $lastUsed = 0;
+        }
+
+        return new ScriptInfo(
+            path: (string) ($scriptData['full_path'] ?? ''),
+            memoryUsage: (int) ($scriptData['memory_consumption'] ?? 0) / 1048576,
+            hits: (int) ($scriptData['hits'] ?? 0),
+            lastUsed: (int) $lastUsed,
+            timestamp: (int) ($scriptData['timestamp'] ?? 0),
+        );
+    }
+
+    private function isNumericTimestamp(mixed $value): bool
+    {
+        return is_int($value) || is_float($value) || (is_string($value) && ctype_digit($value));
     }
 }

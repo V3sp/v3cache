@@ -151,7 +151,8 @@ the overall status. Thresholds (`HealthThresholds`): `minHitRate` (80.0),
 - `OpcacheMetrics` — `memoryUsage`, `memoryFree`, `memoryWasted` (MB); `hitRate` (%),
   `cachedScripts`, `cachedKeys`, `maxCachedKeys`, `restarts`, `startTime`,
   `lastRestartTime`, `scripts` (`ScriptInfo[]`). Has `fromArray()` / `toArray()`.
-- `ScriptInfo` — `path`, `memoryUsage` (MB), `hits`, `lastUsed`, `timestamp`.
+- `ScriptInfo` — `path`, `memoryUsage` (MB), `hits`, `lastUsed` (Unix timestamp,
+  read from `last_used_timestamp` with numeric `last_used` fallback), `timestamp`.
 - `OptimizationRecommendation` — `directive`, `currentValue`, `recommendedValue`,
   `severity` (`HealthStatus`), `description`.
 

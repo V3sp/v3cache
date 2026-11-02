@@ -20,10 +20,16 @@ final class ScriptInfo
      */
     public static function fromArray(array $data): self
     {
-        foreach (['path', 'memory_usage', 'hits', 'last_used', 'timestamp'] as $key) {
+        foreach (['path', 'memory_usage', 'hits', 'timestamp'] as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new \InvalidArgumentException(\sprintf('Missing required key "%s" for ScriptInfo', $key));
             }
+        }
+
+        if (!array_key_exists('last_used', $data) && !array_key_exists('last_used_timestamp', $data)) {
+            throw new \InvalidArgumentException(
+                'Missing required key "last_used" or "last_used_timestamp" for ScriptInfo',
+            );
         }
 
         $path = $data['path'];
@@ -32,11 +38,19 @@ final class ScriptInfo
             throw new \InvalidArgumentException('Invalid ScriptInfo path');
         }
 
+        $lastUsed = $data['last_used_timestamp'] ?? null;
+        if (!is_int($lastUsed) && !is_float($lastUsed) && !(is_string($lastUsed) && ctype_digit($lastUsed))) {
+            $lastUsed = $data['last_used'] ?? null;
+        }
+        if (!is_int($lastUsed) && !is_float($lastUsed) && !(is_string($lastUsed) && ctype_digit($lastUsed))) {
+            $lastUsed = 0;
+        }
+
         return new self(
             path: $path,
             memoryUsage: self::float($data, 'memory_usage'),
             hits: self::int($data, 'hits'),
-            lastUsed: self::int($data, 'last_used'),
+            lastUsed: (int) $lastUsed,
             timestamp: self::int($data, 'timestamp'),
         );
     }

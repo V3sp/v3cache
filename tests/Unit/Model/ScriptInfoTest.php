@@ -45,6 +45,60 @@ final class ScriptInfoTest extends TestCase
         $this->assertSame(1234567890, $script->timestamp);
     }
 
+    public function testFromArrayUsesLastUsedTimestamp(): void
+    {
+        $script = ScriptInfo::fromArray([
+            'path' => '/var/www/test.php',
+            'memory_usage' => 2.5,
+            'hits' => 50,
+            'last_used' => 'Mon Nov 2 2026 12:00:00',
+            'last_used_timestamp' => 1234567890,
+            'timestamp' => 1234567890,
+        ]);
+
+        $this->assertSame(1234567890, $script->lastUsed);
+    }
+
+    public function testFromArrayFallsBackToNumericLastUsed(): void
+    {
+        $script = ScriptInfo::fromArray([
+            'path' => '/var/www/test.php',
+            'memory_usage' => 2.5,
+            'hits' => 50,
+            'last_used' => 1234567890,
+            'timestamp' => 1234567890,
+        ]);
+
+        $this->assertSame(1234567890, $script->lastUsed);
+    }
+
+    public function testFromArrayFallsBackToNumericLastUsedWhenTimestampIsInvalid(): void
+    {
+        $script = ScriptInfo::fromArray([
+            'path' => '/var/www/test.php',
+            'memory_usage' => 2.5,
+            'hits' => 50,
+            'last_used' => 1234567890,
+            'last_used_timestamp' => 'invalid',
+            'timestamp' => 1234567890,
+        ]);
+
+        $this->assertSame(1234567890, $script->lastUsed);
+    }
+
+    public function testFromArrayIgnoresHumanReadableLastUsed(): void
+    {
+        $script = ScriptInfo::fromArray([
+            'path' => '/var/www/test.php',
+            'memory_usage' => 2.5,
+            'hits' => 50,
+            'last_used' => 'Mon Nov 2 2026 12:00:00',
+            'timestamp' => 1234567890,
+        ]);
+
+        $this->assertSame(0, $script->lastUsed);
+    }
+
     public function testFromArrayThrowsOnMissingKeys(): void
     {
         $this->expectException(\InvalidArgumentException::class);

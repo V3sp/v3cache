@@ -44,7 +44,7 @@ Health\HealthStatus: enum string{ok,warn,crit}
   check keys hitRate,memoryWasted,restarts,memoryUsage; overall=worst; CLI health-check exit 0/1/2=ok/warn/crit
 
 Model\OpcacheMetrics: float memoryUsage,memoryFree,memoryWasted (MB); float hitRate (%); int cachedScripts,cachedKeys,maxCachedKeys,restarts,startTime; ?int lastRestartTime; Model\ScriptInfo[] scripts; static fromArray(array): self; toArray(): array // snake_case, symmetric
-Model\ScriptInfo: string path; float memoryUsage; int hits,lastUsed,timestamp; fromArray/toArray
+Model\ScriptInfo: string path; float memoryUsage; int hits,lastUsed,timestamp; fromArray/toArray // lastUsed from last_used_timestamp (fallback numeric last_used)
 Model\OptimizationRecommendation: string directive; string|int|bool currentValue,recommendedValue; Health\HealthStatus severity; string description; fromArray
 
 Application: static create(string $configPath): self; getConfig(): array; getMetricsStorage(): Contract\MetricsStorageInterface; getOpcacheService(): Service\OpcacheService; getHealthChecker(): Health\HealthChecker

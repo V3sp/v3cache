@@ -49,6 +49,7 @@ final class OpcacheServiceTest extends TestCase
         $this->assertSame(1234567890, $metrics->startTime);
         $this->assertNull($metrics->lastRestartTime);
         $this->assertCount(1, $metrics->scripts);
+        $this->assertSame(1234567890, $metrics->scripts[0]->lastUsed);
     }
 
     public function testGetScriptsReturnsScripts(): void
@@ -63,6 +64,35 @@ final class OpcacheServiceTest extends TestCase
         $this->assertSame('/var/www/app.php', $scripts[0]->path);
         $this->assertSame(1.0, $scripts[0]->memoryUsage);
         $this->assertSame(10, $scripts[0]->hits);
+        $this->assertSame(1234567890, $scripts[0]->lastUsed);
+    }
+
+    public function testGetScriptsFallsBackToNumericLastUsed(): void
+    {
+        $status = $this->createStatus();
+        unset($status['scripts']['/var/www/app.php']['last_used_timestamp']);
+        $status['scripts']['/var/www/app.php']['last_used'] = 1234567890;
+
+        $this->api->setEnabled(true);
+        $this->api->setStatus($status);
+
+        $scripts = $this->service->getScripts();
+
+        $this->assertSame(1234567890, $scripts[0]->lastUsed);
+    }
+
+    public function testGetScriptsFallsBackToNumericLastUsedWhenTimestampIsInvalid(): void
+    {
+        $status = $this->createStatus();
+        $status['scripts']['/var/www/app.php']['last_used_timestamp'] = 'invalid';
+        $status['scripts']['/var/www/app.php']['last_used'] = 1234567890;
+
+        $this->api->setEnabled(true);
+        $this->api->setStatus($status);
+
+        $scripts = $this->service->getScripts();
+
+        $this->assertSame(1234567890, $scripts[0]->lastUsed);
     }
 
     public function testReloadCallsReset(): void
@@ -150,7 +180,8 @@ final class OpcacheServiceTest extends TestCase
                     'full_path' => '/var/www/app.php',
                     'hits' => 10,
                     'memory_consumption' => 1048576,
-                    'last_used' => 1234567890,
+                    'last_used' => 'Mon Nov 2 2026 12:00:00',
+                    'last_used_timestamp' => 1234567890,
                     'timestamp' => 1234567890,
                 ],
             ],

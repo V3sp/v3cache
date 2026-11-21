@@ -5,6 +5,12 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Updated `composer.lock` to patched releases (PHPUnit 10.5.67, PHPStan 2.3.7,
+  Predis 3.7.1, opis/json-schema 2.6.2) and added `safe.directory` for git in
+  Docker to avoid CI ownership errors.
+
 ## [0.2.2] - 2026-11-21
 
 ### Added

@@ -12,6 +12,8 @@ set -e
 
 cd /app
 
+git config --global --add safe.directory /app 2>/dev/null || true
+
 if [ ! -f vendor/autoload.php ]; then
     echo ">>> Brak vendor/autoload.php — instalacja zależności dla PHP $(php -r 'echo PHP_VERSION;')"
     if [ -f composer.lock ]; then

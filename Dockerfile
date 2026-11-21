@@ -10,7 +10,8 @@ RUN set -eux; \
         libonig-dev \
         libzip-dev \
         unzip; \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*; \
+    git config --global --add safe.directory /app
 
 # zip (wymagane przez composer) - redis jest dostarczany przez predis/predis (czyste PHP)
 RUN set -eux; \

@@ -1,13 +1,13 @@
 # Repository Guidelines
 
 Composer library `v3sp/v3cache`: monitoring, health checks, warmup and optimization
-for PHP OPcache. PHP `^8.3.36`. Headless — no GUI and no server orchestration;
+for PHP OPcache. PHP `^8.3.37`. Headless — no GUI and no server orchestration;
 multi-server aggregation and dashboards live in a separate private project
 (`v3cache-admin`) that depends on this package.
 
 ## Run everything in Docker — never with local PHP
 
-Local PHP (currently 8.5.12; minimum supported is 8.3.36) does not match the tested matrix and usually lacks
+Local PHP (currently 8.6.0; minimum supported is 8.3.37) does not match the tested matrix and usually lacks
 `opcache.enable_cli=1`, so OPcache integration tests silently skip. This is a
 hard repo convention (see `context/foundation/lessons.md`).
 
@@ -25,7 +25,7 @@ hard repo convention (see `context/foundation/lessons.md`).
 - Security workflow: `.github/workflows/security.yml` (Gitleaks, Trivy, SBOM, scheduled audit)
 - Incident playbooks: `docs/security/incident-response.md`
 - Release checklist: `docs/security/release-checklist.md`
-- Other PHP versions: `php83`/`php84`/`php85` services (minimum 8.3.36).
+- Other PHP versions: `php83`/`php84`/`php85`/`php86` services (minimum 8.3.37).
 
 `docker/entrypoint.sh` runs `composer install` from the committed `composer.lock`
 when a container's `vendor/` is missing (fallback: `composer update`), so the

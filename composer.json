@@ -5,7 +5,7 @@
     "license": "MIT",
     "keywords": ["opcache", "monitoring", "health-check", "cache", "performance"],
     "require": {
-        "php": "^8.3.36",
+        "php": "^8.3.37",
         "ext-json": "*",
         "ext-zend-opcache": "*",
         "predis/predis": "^3.7"

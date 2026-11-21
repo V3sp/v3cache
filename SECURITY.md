@@ -4,12 +4,12 @@
 
 | Version | PHP | Status |
 |---|---|---|
-| `0.2.x` | 8.3.36+ | Supported |
+| `0.2.x` | 8.3.37+ | Supported |
 | `0.1.x` | 8.1+ | End-of-life; no security backports |
 
 PHP 8.1 is end-of-life and did not receive upstream fixes for
 `CVE-2026-109618` / `CVE-2026-109619`. PHP 8.2 reaches end of security support
-on 2026-12-31. Use PHP 8.3.36+ (8.4.27+ / 8.5.12+ recommended).
+on 2026-12-31. Use PHP 8.3.37+ (8.4.28+ / 8.5.13+ / 8.6.0+ recommended).
 
 ## Reporting a vulnerability
 

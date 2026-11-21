@@ -8,7 +8,7 @@
 > written just for you: [README_AI.md](README_AI.md).**
 
 **Monitoring, health checking, warmup and optimization for PHP OPcache.** A headless
-Composer library for PHP 8.3.36+ — no GUI and no server orchestration.
+Composer library for PHP 8.3.37+ — no GUI and no server orchestration.
 
 ## Why this library exists
 
@@ -33,7 +33,7 @@ OPcache makes a PHP application noticeably faster.
 
 ## Requirements
 
-- PHP `^8.3.36` (8.3, 8.4 and 8.5 are tested)
+- PHP `^8.3.37` (8.3, 8.4, 8.5 and 8.6 are tested)
 - `ext-json`
 - `ext-zend-opcache`
 - `predis/predis` (installed automatically; only used by the Redis storage backend)
@@ -42,9 +42,10 @@ OPcache makes a PHP application noticeably faster.
 
 | PHP | Status | Security support until |
 |---|---|---|
-| 8.3 | supported (minimum `8.3.36`) | 2027-12-31 |
-| 8.4 | supported (minimum `8.4.27`) | 2028-12-31 |
-| 8.5 | supported (minimum `8.5.12`) | 2029-12-31 |
+| 8.3 | supported (minimum `8.3.37`) | 2027-12-31 |
+| 8.4 | supported (minimum `8.4.28`) | 2028-12-31 |
+| 8.5 | supported (minimum `8.5.13`) | 2029-12-31 |
+| 8.6 | supported (minimum `8.6.0`) | 2030 |
 
 PHP 8.1 and 8.2 are **not supported**. PHP 8.1 is end-of-life and did not
 receive upstream fixes for `CVE-2026-109618` / `CVE-2026-109619`; PHP 8.2
@@ -61,7 +62,7 @@ composer require v3sp/v3cache
 `0.1.x` supported PHP 8.1+ and is now **end-of-life** — it does not receive
 security backports. To move to `0.2.x`:
 
-1. Upgrade PHP to **8.3.36 or newer** (8.4.27+ / 8.5.12+ recommended).
+1. Upgrade PHP to **8.3.37 or newer** (8.4.28+ / 8.5.13+ / 8.6.0+ recommended).
 2. Run `composer require v3sp/v3cache:^0.2`.
 
 If you must stay on PHP 8.1/8.2 for a short transition, pin

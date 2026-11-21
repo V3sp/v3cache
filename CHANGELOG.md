@@ -5,6 +5,16 @@ All notable changes to this project are documented here. This project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- PHP 8.6.0 support: added `php86` Docker/CI service and updated the supported
+  PHP version table.
+
+### Changed
+
+- Updated supported PHP Docker images to security-patched releases 8.3.37,
+  8.4.28, 8.5.13 and 8.6.0.
+
 ## [0.2.1] - 2026-11-02
 
 ### Fixed

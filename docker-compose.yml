@@ -17,7 +17,7 @@ services:
     build:
       context: .
       args:
-        PHP_IMAGE: "php:8.3.36-cli@sha256:600bce7c7acf524756e5aac989f4a763aed709960d7326970bb670f46efee53a"
+        PHP_IMAGE: "php:8.3.37-cli@sha256:9e2a4e9b1704c05cc469fddbf9b0f0f205e2bb13efd249bbad177289ebdc5c7c"
     volumes:
       - .:/app
       - vendor-php83:/app/vendor
@@ -28,7 +28,7 @@ services:
     build:
       context: .
       args:
-        PHP_IMAGE: "php:8.4.27-cli@sha256:7e7413ed31b8c42b31c939cc83b3758b1cd618f7bf3803f5a0c39f98d4adcbee"
+        PHP_IMAGE: "php:8.4.28-cli@sha256:6b13a8678b38ca38e4e3950be57b664ed8c8706131a0586111f68792aede4c58"
     volumes:
       - .:/app
       - vendor-php84:/app/vendor
@@ -39,10 +39,21 @@ services:
     build:
       context: .
       args:
-        PHP_IMAGE: "php:8.5.12-cli@sha256:9236fd373d3bcda0659cf94838a744bd79791419292958963f8c6b34a0071554"
+        PHP_IMAGE: "php:8.5.13-cli@sha256:f324fcb4dc009ac0470a7d614cd122499dcee3ca47a9bab620fc14c0eb759ba2"
     volumes:
       - .:/app
       - vendor-php85:/app/vendor
+    command: ["vendor/bin/phpunit"]
+
+  php86:
+    <<: *php-defaults
+    build:
+      context: .
+      args:
+        PHP_IMAGE: "php:8.6.0-cli@sha256:d84acf3155d907afaa5afa9b9457c5f12016b6dc7ade84659f40cdc505cc087d"
+    volumes:
+      - .:/app
+      - vendor-php86:/app/vendor
     command: ["vendor/bin/phpunit"]
 
   redis:
@@ -54,10 +65,10 @@ services:
     build:
       context: .
       args:
-        PHP_IMAGE: "php:8.5.12-cli@sha256:9236fd373d3bcda0659cf94838a744bd79791419292958963f8c6b34a0071554"
+        PHP_IMAGE: "php:8.6.0-cli@sha256:d84acf3155d907afaa5afa9b9457c5f12016b6dc7ade84659f40cdc505cc087d"
     volumes:
       - .:/app
-      - vendor-php85:/app/vendor
+      - vendor-php86:/app/vendor
       - .phpunit.cache:/app/.phpunit.cache
     depends_on:
       - redis
@@ -75,4 +86,5 @@ volumes:
   vendor-php83:
   vendor-php84:
   vendor-php85:
+  vendor-php86:
   .phpunit.cache:
